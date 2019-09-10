@@ -1,4 +1,4 @@
-# Hatch trim script
+# Trim hatch script
 Simple script for trimming hatches in Rhino 6.0
 
 __Installation__:
