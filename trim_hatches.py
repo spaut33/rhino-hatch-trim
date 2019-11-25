@@ -2,7 +2,12 @@ import rhinoscriptsyntax as rs
 
 
 hatch = rs.GetObject(message="Pick any hatch", filter=rs.filter.hatch)
-trim_lines = rs.GetObject(message="Select cutting lines", filter=rs.filter.curve)
+trim_lines = rs.GetObjects(message="Select cutting lines", filter=rs.filter.curve)
+
+# Project trim_lines to cplane
+plane = rs.ViewCPlane()
+matrix = rs.XformPlanarProjection(plane)
+rs.TransformObjects(trim_lines, matrix, copy=False)
 
 selected_objects = []
 selected_objects.append(trim_lines)
