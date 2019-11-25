@@ -1,5 +1,5 @@
 import rhinoscriptsyntax as rs
-
+import operator
 
 hatch = rs.GetObject(message="Pick any hatch", filter=rs.filter.hatch)
 trim_lines = rs.GetObjects(message="Select cutting lines", filter=rs.filter.curve)
@@ -21,25 +21,27 @@ if hatch:
     # Make hatch solid so we able to explode it and get surface instead
     if hatch_pattern != "Solid":
         rs.HatchPattern(hatch, "Solid")
-    
-    dup_border_surface = rs.ExplodeHatch(hatch)[0]
+    dup_border_surface = []
+    dup_border_surface.append(rs.ExplodeHatch(hatch)[0])
     rs.SurfaceIsocurveDensity(dup_border_surface, 100)
     selected_objects.append(dup_border_surface)
-    rs.SelectObjects(selected_objects)
+    reduced_selected_objects = reduce(operator.add, selected_objects)
+    rs.SelectObjects(reduced_selected_objects)
     rs.HideObject(hatch)
     rs.Command("_Trim")
     trimmed_surface = rs.LastCreatedObjects()
     
     new_borders = []
     if trimmed_surface:
-        new_borders.append(rs.DuplicateSurfaceBorder(trimmed_surface))
-        selected_objects.append(new_borders)
+        for surface in trimmed_surface:
+            new_borders.append(rs.DuplicateSurfaceBorder(surface))
+            selected_objects.append(new_borders)
         # Keep trimming lines but everything else will be deleted further
         selected_objects.remove(trim_lines)
         new_hatches = rs.AddHatches(new_borders, hatch_pattern, hatch_scale, hatch_rotation)
         rs.MatchObjectAttributes(new_hatches, hatch)
         rs.ShowObject(new_hatches)
-        rs.DeleteObjects(selected_objects)
+       rs.DeleteObjects(trimmed_surface)
     else:
         print("No trimmed surfaces was created.")
 else:
